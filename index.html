@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#14141a">
+<meta name="description" content="退屈なとき、何も考えずに開いてすぐ遊べるミニゲーム。">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DOPA!">
+<title>DOPA!</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<main id="app">
+
+  <!-- ホーム -->
+  <section id="screen-home" class="screen is-active" aria-label="ホーム">
+    <div class="retro-bg" aria-hidden="true"><div class="sun"></div><div class="grid"></div></div>
+    <div class="home-inner">
+      <h1 class="logo">DOPA!</h1>
+      <p class="tagline">考えるより、遊ぼう。</p>
+      <nav class="menu">
+        <button class="btn btn-primary" data-action="play">あそぶ</button>
+        <button class="btn btn-outline" data-action="settings">せってい</button>
+        <button class="btn btn-outline btn-pink" data-action="random">ランダムであそぶ</button>
+      </nav>
+      <p class="home-best">ベスト <span id="home-best">0</span></p>
+    </div>
+  </section>
+
+  <!-- 設定 -->
+  <section id="screen-settings" class="screen" aria-label="設定">
+    <div class="settings-wrap">
+      <header class="screen-head">
+        <button class="btn-back" data-action="home" aria-label="ホームに戻る">◀ もどる</button>
+        <h2>せってい</h2>
+      </header>
+
+      <div class="setting">
+        <div class="label">音</div>
+        <button class="toggle" data-toggle="soundEnabled" aria-label="音"><span></span></button>
+      </div>
+      <div class="setting">
+        <div class="label">音量<small><output id="out-soundVolume">70%</output></small></div>
+        <input type="range" min="0" max="100" step="5" data-range="soundVolume" data-scale="100" aria-label="音量">
+      </div>
+      <div class="setting">
+        <div class="label">効果音だけ<small>BGM を鳴らさない</small></div>
+        <button class="toggle" data-toggle="sfxOnly" aria-label="効果音だけ"><span></span></button>
+      </div>
+      <div class="setting">
+        <div class="label">振動<small>対応している端末だけ</small></div>
+        <button class="toggle" data-toggle="vibrationEnabled" aria-label="振動"><span></span></button>
+      </div>
+      <div class="setting col">
+        <div class="label">エフェクト<small>粒子・残像の量</small></div>
+        <div class="seg" data-seg="effectLevel">
+          <button data-value="LOW">少なめ</button><button data-value="NORMAL">ふつう</button><button data-value="HIGH">多め</button>
+        </div>
+      </div>
+      <div class="setting col">
+        <div class="label">刺激の強さ<small>おだやか＝画面の揺れ・フラッシュなし</small></div>
+        <div class="seg" data-seg="stimulationLevel">
+          <button data-value="CALM">おだやか</button><button data-value="NORMAL">ふつう</button><button data-value="CHAOS">カオス</button>
+        </div>
+      </div>
+      <div class="setting">
+        <div class="label">操作の感度<small><output id="out-controlSensitivity">1.0</output></small></div>
+        <input type="range" min="0.5" max="2" step="0.1" data-range="controlSensitivity" data-scale="1" aria-label="操作の感度">
+      </div>
+
+      <div class="records">
+        <h3>クラッシュレーサーの記録</h3>
+        <dl class="stats">
+          <div><dt>ベストスコア</dt><dd id="rec-highScore">0</dd></div>
+          <div><dt>最高速度</dt><dd id="rec-highestSpeed">0</dd></div>
+          <div><dt>衝突（累計）</dt><dd id="rec-totalCrashes">0</dd></div>
+          <div><dt>ニアミス（累計）</dt><dd id="rec-totalNearMisses">0</dd></div>
+        </dl>
+        <button class="btn-text" data-action="reset-records">記録をリセット</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ゲーム -->
+  <section id="screen-game" class="screen" aria-label="ゲーム">
+    <canvas id="game-canvas"></canvas>
+    <div id="hud" class="hud">
+      <div class="hud-top">
+        <button class="hud-btn" data-action="pause" aria-label="一時停止">❚❚</button>
+        <div class="hud-center">
+          <div class="hud-title">クラッシュレーサー</div>
+          <div class="hud-score">0</div>
+        </div>
+        <button class="hud-btn" data-action="finish" aria-label="終了">おわる</button>
+      </div>
+      <div class="hud-row">
+        <div class="hud-speed"><span class="hud-speed-num">120</span><small>km/h</small></div>
+        <div class="hud-combo">コンボ 0</div>
+        <div class="hud-mult">x1.0</div>
+      </div>
+      <div class="hud-hp" aria-label="HP">
+        <div class="hud-hp-bar"><i></i></div>
+        <span class="hud-hp-num">HP 50</span>
+      </div>
+      <div class="hud-fx"></div>
+    </div>
+    <div id="hint" class="hint" aria-hidden="true">◀ タップ・スワイプ ▶</div>
+    <div id="pause-overlay" class="overlay" hidden>
+      <div class="panel">
+        <h2>ひと休み</h2>
+        <button class="btn btn-primary" data-action="resume">つづける</button>
+        <button class="btn btn-outline" data-action="finish">おわる</button>
+        <button class="btn btn-outline btn-pink" data-action="home">ホームへ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- リザルト -->
+  <section id="screen-result" class="screen" aria-label="リザルト">
+    <div class="result-wrap">
+      <p class="result-game">クラッシュレーサー</p>
+      <p class="result-wreck" id="r-wreck" hidden></p>
+      <div class="result-score" id="r-score">0</div>
+      <p class="result-best" id="r-best"></p>
+      <dl class="stats">
+        <div><dt>最高速度</dt><dd id="r-speed">0</dd></div>
+        <div><dt>衝突</dt><dd id="r-crashes">0</dd></div>
+        <div><dt>ニアミス</dt><dd id="r-near">0</dd></div>
+        <div><dt>最大コンボ</dt><dd id="r-combo">0</dd></div>
+      </dl>
+      <nav class="menu">
+        <button class="btn btn-primary" data-action="again">もう一回</button>
+        <button class="btn btn-outline" data-action="home">ホームへ</button>
+      </nav>
+    </div>
+  </section>
+
+</main>
+<noscript>JavaScript を有効にしてください。</noscript>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
